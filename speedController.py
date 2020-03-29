@@ -77,5 +77,6 @@ class SpeedController :
 		elif (v_right<-1):
 			v_right=-1
 
-		return v_left,v_right
+		return v_left,v_right#,self.position_speed,self.angle_speed
+
 
