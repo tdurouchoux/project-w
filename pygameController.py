@@ -2,6 +2,7 @@
 import pygame 
 from pygame.locals import *
 import numpy as np
+from queue import Queue
 
 class Environment():  
 	
@@ -64,14 +65,16 @@ class Robot(pygame.sprite.Sprite):
 		self.current_rotation = 0 
 		self.current_angle = -90# <<<<<<<<<<<<<<<<<<<
 
-	def compute_movement(delta_position,delta_angle):
-		#
+	def compute_movement(delta_position):
+		# poistion -> cm 
+
+		# trigo 
 		#
 		return dx,dy,delta_theta 
 
-	def update(self,env,delta_position,delta_angle): 
+	def update(self,env,delta_position): 
 
-		dx,dy,delta_theta = self.compute_movement(delta_position,delta_angle)
+		dx,dy,delta_theta = self.compute_movement(delta_position)
 
 		self.current_angle += delta_theta
 		current_pos = self.rect.center
@@ -84,8 +87,8 @@ class Robot(pygame.sprite.Sprite):
 
 class PygameController : 
 
-	position_speed = 10 
-	angle_speed = 7 
+	position_speed = 10
+	angle_speed = 7
 
 	def __init__(self):
 
@@ -121,19 +124,19 @@ class PygameController :
 				elif event.key in (K_LEFT,K_RIGHT) : 
 					self.angle_command = 0 
 
-	def run(self,position_command,angle_command,delta_position,delta_angle): 
-		# DELTA POSITION MUST BE QUEUE 
+	def run(self,position_command,angle_command,delta_position_queue): 
 
 		while 1:
 			get_inputs()
-			
+
 			position_command,angle_command = self.position_command,self.angle_command
 
-			allsprites.update(env,delta_position,delta_angle)
-		# update environment 
-			env.update(screen)
-			allsprites.draw(screen)
-			pygame.display.flip()
+			if not delta_position_queue.empty() :
+				delta_position = delta_position_queue.get_nowait()
+				allsprites.update(env,delta_position)
+				env.update(screen)
+				allsprites.draw(screen)
+				pygame.display.flip()
 
 
 
