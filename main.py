@@ -1,71 +1,37 @@
 import pygame
 import time
+from threading import Thread
+from queue import Queue 
 
 from speedController import SpeedController
+from pygameController import PygameController
 from adafruit_motorkit import MotorKit
 
-controller = SpeedController()
+
+def run_motor(motor_command_queue):
+
+    while 1 : 
+        v_left,v_right = motor_command_queue.get()
+
+        kit.motor3.throttle = v_left
+        kit.motor1.throttle = v_right
+
+pygameController = PygameController()
+speedController = SpeedController()
 kit = MotorKit()
 
-pygame.init()
-pygame.display.set_mode()
+position_command = 0 
+angle_command = 0 
+delta_position_queue = Queue()
+motor_command_queue = Queue()
 
-position_speed_goal = 0 
-angle_speed_goal = 0 
+t1 = Thread(target=run_motor,args=(motor_command_queue,))
+t2 = Thread(target=speedController.run,args=(position_command,angle_command,delta_position_queue,motor_command_queue,))
+t3 = Thread(target=pygameController.run,args=(position_command,angle_command,delta_position_queue,))
 
-step = 0.25
-
-
-
-def update_speed(position_speed_goal,angle_speed_goal) :
-
-    status_keyboard = pygame.key.get_pressed()
-    is_pressed_up = status_keyboard[pygame.K_UP]
-    is_pressed_down = status_keyboard[pygame.K_DOWN]
-    is_pressed_left = status_keyboard[pygame.K_LEFT]
-    is_pressed_right = status_keyboard[pygame.K_RIGHT] 
-
-    if is_pressed_right: 
-        if angle_speed_goal<24:
-            angle_speed_goal+=step/2 
-    elif is_pressed_left: 
-        if angle_speed_goal>-24:
-            angle_speed_goal-=step/2
-
-    if angle_speed_goal>0 and not is_pressed_right:
-        angle_speed_goal-=step/2 
-    elif angle_speed_goal<0 and not is_pressed_left: 
-        angle_speed_goal+=step/2 
-    
-    if is_pressed_up:
-        if position_speed_goal<12:
-            position_speed_goal+=step
-    elif is_pressed_down:
-        if position_speed_goal>-12:
-            position_speed_goal-=step
-    
-    if position_speed_goal>0 and not is_pressed_up:
-        position_speed_goal-=step
-    elif position_speed_goal<0 and not is_pressed_down:
-        position_speed_goal+=step
-
-    pygame.event.pump()
-
-    return position_speed_goal,angle_speed_goal, status_keyboard[pygame.K_q]
-
-stop = False
-
-while not stop:
-    
-    position_speed_goal,angle_speed_goal,stop = update_speed(position_speed_goal,angle_speed_goal)
-
-    controller.set_speed(position_speed_goal,angle_speed_goal)
-    v_left, v_right = controller.compute_controls()
-
-    kit.motor3.throttle = v_left
-    kit.motor1.throttle = v_right
-
-    time.sleep(0.05)
+t1.start()
+t2.start()
+t3.start()
 
 kit.motor3.throttle=None
 kit.motor1.throttle=None

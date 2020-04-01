@@ -4,8 +4,11 @@ from pygame.locals import *
 import numpy as np
 from queue import Queue
 
+# 4 pixels -> 1 cm  
+
 class Environment():  
 	
+
 	background_size = (1600,1600)
 
 	def __init__(self,screen): 
@@ -40,7 +43,7 @@ class Environment():
 
 	def move(self,dx,dy):
 
-		self.background_rect = self.background_rect.move((-dx,dy))
+		self.background_rect = self.background_rect.move((-dx,-dy))
 
 	def update(self,screen): 
 		screen.blit(self.background,self.background_rect)
@@ -50,6 +53,9 @@ class Robot(pygame.sprite.Sprite):
 	
 	movement_speed = 10 
 	rotation_speed = 7
+
+	robot_diameter = 120 #mm 
+	input_encoder_distance = 2*pi*21/48 
 
 	def __init__(self):
 		pygame.sprite.Sprite.__init__(self)
@@ -63,22 +69,36 @@ class Robot(pygame.sprite.Sprite):
 
 		self.current_move = 0  
 		self.current_rotation = 0 
-		self.current_angle = -90# <<<<<<<<<<<<<<<<<<<
+		self.current_angle = 0#radian 
 
 	def compute_movement(delta_position):
-		# poistion -> cm 
+		# 48 input par tour 
+		d_m, delta_angle = delta_position 
+		
+		d_m = d_m*self.input_encoder_distance #tick to mm 
+		delta_angle = delta_angle*self.input_encoder_distance # tick to mm 
 
-		# trigo 
-		#
-		return dx,dy,delta_theta 
+		theta = delta_angle/self.robot_diameter # radian
+
+		if theta == 0 :
+			dx = d_m*np.cos(self.current_angle)
+			dy = d_m*np.sin(self.current_angle)
+
+		else : 
+
+			r_m = d_m/theta
+			dx = 2*r_m*np.sin(theta/2)*np.cos(self.current_angle+theta/2)
+			dy = 2*r_m*np.sin(theta/2)*np.sin(self.current_angle+theta/2)
+		
+		return dx,dy,theta 
 
 	def update(self,env,delta_position): 
 
-		dx,dy,delta_theta = self.compute_movement(delta_position)
+		dx,dy,theta = self.compute_movement(delta_position)
 
 		self.current_angle += delta_theta
 		current_pos = self.rect.center
-		self.image = pygame.transform.rotate(self.original_image,self.current_angle)
+		self.image = pygame.transform.rotate(self.original_image,np.rad2deg(self.current_angle))
 		self.rect = self.image.get_rect()
 		self.rect.center = current_pos 
 

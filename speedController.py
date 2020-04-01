@@ -15,11 +15,8 @@ class SpeedController :
 	pi_angle = 0.01
 	pd_angle = 0.01
 
-	def __init__(self,position_speed_goal=0,angle_speed_goal=0): 
+	def __init__(self): 
 		
-		self.position_speed_goal = position_speed_goal
-		self.angle_speed_goal = angle_speed_goal
-
 		self.position = 0 
 		self.angle = 0 
 		self.position_speed = 0 
@@ -35,11 +32,6 @@ class SpeedController :
 		self.encoder = enc.Encoder()
 		self.encoder.start()
 
-	def set_speed(self,position_speed_goal,angle_speed_goal): 
-		
-		self.position_speed_goal = position_speed_goal
-		self.angle_speed_goal = angle_speed_goal		
-
 	def update_status(self): 
 		new_position = self.encoder.get_position()
 		new_angle = self. encoder.get_angle()
@@ -53,30 +45,30 @@ class SpeedController :
 		self.position = new_position
 		self.angle = new_angle
 
-		self.actual_position_goal+=self.position_speed_goal
-		self.actual_angle_goal+=self.angle_speed_goal
+		self.actual_position_goal+=position_command
+		self.actual_angle_goal+=angle_command
 
-	def compute_controls(self):
+	def run(self,position_command,angle_command,delta_position_queue,motor_command_queue):
 
-		self.update_status()
+		while 1 : 
+			self.update_status(position_command,angle_command)
 
-		v1 = self.p_pos * (self.position_speed_goal-self.position_speed) + self.pi_pos*(self.actual_position_goal-self.position)-self.pd_pos*self.position_acce
-		v2 = self.p_angle*(self.angle_speed_goal-self.angle_speed) + self.pi_angle*(self.actual_angle_goal-self.angle)- self.pd_angle*self.angle_acce
-		
-		#print(self.p_pos * (self.position_speed_goal-self.position_speed),self.pi_pos*(self.actual_position_goal-self.position),self.pd_pos*self. position_acce)
+			delta_position_queue.put([self.position_speed,self.angle_speed ])
 
-		v_left=v1+v2
-		v_right=v1-v2
-		
-		if (v_left>1):
-			v_left=1
-		elif (v_left<-1):
-			v_left=-1
-		if (v_right>1):
-			v_right=1
-		elif (v_right<-1):
-			v_right=-1
+			v1 = self.p_pos * (position_command-self.position_speed) + self.pi_pos*(self.actual_position_goal-self.position)-self.pd_pos*self.position_acce
+			v2 = self.p_angle*(angle_command-self.angle_speed) + self.pi_angle*(self.actual_angle_goal-self.angle)- self.pd_angle*self.angle_acce
 
-		return v_left,v_right#,self.position_speed,self.angle_speed
+			v_left=v1+v2
+			v_right=v1-v2
+			
+			if (v_left>1):
+				v_left=1
+			elif (v_left<-1):
+				v_left=-1
+			if (v_right>1):
+				v_right=1
+			elif (v_right<-1):
+				v_right=-1
 
+			motor_command_queue.put([v_left,v_right])
 
