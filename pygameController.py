@@ -91,8 +91,10 @@ class Robot(pygame.sprite.Sprite):
 			dx = 2*r_m*np.sin(theta/2)*np.cos(self.current_angle+theta/2)
 			dy = 2*r_m*np.sin(theta/2)*np.sin(self.current_angle+theta/2)
 		
+		dx = dx/2.5 # from mm to pixels 
+		dy = dy/2.5 # from mm to pixels 
 
-		# conversion to pixels ?
+		
 		return dx,dy,theta 
 
 	def update(self,env,delta_position): 
