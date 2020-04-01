@@ -17,6 +17,8 @@ class SpeedController :
 
 	def __init__(self): 
 		
+		self.motorKit = MotorKit()
+
 		self.position = 0 
 		self.angle = 0 
 		self.position_speed = 0 
@@ -48,7 +50,7 @@ class SpeedController :
 		self.actual_position_goal+=position_command
 		self.actual_angle_goal+=angle_command
 
-	def run(self,position_command,angle_command,delta_position_queue,motor_command_queue):
+	def run(self,position_command,angle_command,delta_position_queue):
 
 		while 1 : 
 			self.update_status(position_command,angle_command)
@@ -70,5 +72,8 @@ class SpeedController :
 			elif (v_right<-1):
 				v_right=-1
 
-			motor_command_queue.put([v_left,v_right])
+			self.motorKit.motor3.throttle = v_left 
+			self.motorKit.motor1.throttle = v_right
+		kit.motor3.throttle=None
+		kit.motor1.throttle=None
 

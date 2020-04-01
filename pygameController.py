@@ -158,6 +158,8 @@ class PygameController :
 				allsprites.draw(screen)
 				pygame.display.flip()
 
+		pygame.quit()
+
 
 
 
