@@ -70,7 +70,7 @@ class Robot(pygame.sprite.Sprite):
 
 		self.current_move = 0  
 		self.current_rotation = 0 
-		self.current_angle = -np.pi/2#radian 
+		self.current_angle = - np.pi/2#radian 
 
 	def compute_movement(self,delta_position):
 		# 48 input par tour 
@@ -79,7 +79,7 @@ class Robot(pygame.sprite.Sprite):
 		d_m = d_m*self.input_encoder_distance #tick to mm 
 		delta_angle = delta_angle*self.input_encoder_distance # tick to mm 
 
-		theta = - delta_angle/self.robot_diameter # radian
+		theta = delta_angle/self.robot_diameter # radian
 
 		if theta == 0 :
 			dx = d_m*np.cos(self.current_angle)
@@ -103,7 +103,7 @@ class Robot(pygame.sprite.Sprite):
 
 		self.current_angle += theta
 		current_pos = self.rect.center
-		self.image = pygame.transform.rotate(self.original_image,np.rad2deg(self.current_angle))
+		self.image = pygame.transform.rotate(self.original_image,np.rad2deg(-self.current_angle))
 		self.rect = self.image.get_rect()
 		self.rect.center = current_pos 
 
@@ -112,8 +112,8 @@ class Robot(pygame.sprite.Sprite):
 
 class PygameController : 
 
-	position_speed = 10
-	angle_speed = 7
+	position_speed = 13
+	angle_speed = 5
 
 	def __init__(self):
 
