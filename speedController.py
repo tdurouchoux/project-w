@@ -29,6 +29,9 @@ class SpeedController :
 		self.actual_position_goal = 0 
 		self.actual_angle_goal = 0
 
+		self.position_command = 0 
+		self.angle_command = 0
+
 		self.iteration = 0 
 
 		self.encoder = enc.Encoder()
@@ -47,18 +50,22 @@ class SpeedController :
 		self.position = new_position
 		self.angle = new_angle
 
-		self.actual_position_goal+=position_command
-		self.actual_angle_goal+=angle_command
+		self.actual_position_goal+=self.position_command
+		self.actual_angle_goal+=self.angle_command
 
-	def run(self,position_command,angle_command,delta_position_queue):
+	def run(self,command_queue,delta_position_queue):
 
 		while 1 : 
-			self.update_status(position_command,angle_command)
+			
+			if not command_queue.empty(): 
+				self.position_command,self.angle_command = command_queue.get()
+
+			self.update_status()
 
 			delta_position_queue.put([self.position_speed,self.angle_speed ])
 
-			v1 = self.p_pos * (position_command-self.position_speed) + self.pi_pos*(self.actual_position_goal-self.position)-self.pd_pos*self.position_acce
-			v2 = self.p_angle*(angle_command-self.angle_speed) + self.pi_angle*(self.actual_angle_goal-self.angle)- self.pd_angle*self.angle_acce
+			v1 = self.p_pos * (self.position_command-self.position_speed) + self.pi_pos*(self.actual_position_goal-self.position)-self.pd_pos*self.position_acce
+			v2 = self.p_angle*(self.angle_command-self.angle_speed) + self.pi_angle*(self.actual_angle_goal-self.angle)- self.pd_angle*self.angle_acce
 
 			v_left=v1+v2
 			v_right=v1-v2
@@ -74,6 +81,9 @@ class SpeedController :
 
 			self.motorKit.motor3.throttle = v_left 
 			self.motorKit.motor1.throttle = v_right
+
+			time.sleep(0.05)
+
 		kit.motor3.throttle=None
 		kit.motor1.throttle=None
 

@@ -3,6 +3,7 @@ import pygame
 from pygame.locals import *
 import numpy as np
 from queue import Queue
+import time
 
 # 4 pixels -> 1 cm  
 
@@ -55,9 +56,9 @@ class Robot(pygame.sprite.Sprite):
 	rotation_speed = 7
 
 	robot_diameter = 120 #mm 
-	input_encoder_distance = 2*pi*21/48 
+	input_encoder_distance = 2*np.pi*21/48 
 
-	def __init__(self):
+	def __init__(self,screen):
 		pygame.sprite.Sprite.__init__(self)
 		self.original_image = pygame.image.load('robot_image.png')
 		self.original_image = pygame.transform.scale(self.original_image, (48, 48))
@@ -69,9 +70,9 @@ class Robot(pygame.sprite.Sprite):
 
 		self.current_move = 0  
 		self.current_rotation = 0 
-		self.current_angle = 0#radian 
+		self.current_angle = -90#radian 
 
-	def compute_movement(delta_position):
+	def compute_movement(self,delta_position):
 		# 48 input par tour 
 		d_m, delta_angle = delta_position 
 		
@@ -96,7 +97,7 @@ class Robot(pygame.sprite.Sprite):
 
 		dx,dy,theta = self.compute_movement(delta_position)
 
-		self.current_angle += delta_theta
+		self.current_angle += theta
 		current_pos = self.rect.center
 		self.image = pygame.transform.rotate(self.original_image,np.rad2deg(self.current_angle))
 		self.rect = self.image.get_rect()
@@ -116,16 +117,16 @@ class PygameController :
 		self.angle_command = 0 
 
 		pygame.init()
-		screen = pygame.display.set_mode((700, 700))
+		self.screen = pygame.display.set_mode((700, 700))
 
-		env = Environment(screen)
-		robot = Robot()
+		self.env = Environment(self.screen)
+		self.robot = Robot(self.screen)
 
-		env.update(screen)
+		self.env.update(self.screen)
 
-		allsprites = pygame.sprite.RenderPlain((robot))
+		self.allsprites = pygame.sprite.RenderPlain((self.robot))
 
-	def get_inputs(): 
+	def get_inputs(self): 
 
 		for event in pygame.event.get():
 			if event.type == KEYDOWN:
@@ -134,9 +135,9 @@ class PygameController :
 				elif event.key == K_DOWN :
 					self.position_command = - self.position_speed 
 				elif event.key == K_RIGHT : 
-					self.angle_command = -self.rotation_speed
+					self.angle_command = self.angle_speed
 				elif event.key == K_LEFT :
-					self.angle_command = self.rotation_speed
+					self.angle_command = - self.angle_speed
 			
 			if event.type == KEYUP : 
 				if event.key in (K_UP,K_DOWN):
@@ -144,19 +145,24 @@ class PygameController :
 				elif event.key in (K_LEFT,K_RIGHT) : 
 					self.angle_command = 0 
 
-	def run(self,position_command,angle_command,delta_position_queue): 
+	def run(self,command_queue,delta_position_queue): 
 
 		while 1:
-			get_inputs()
+			self.get_inputs()
 
-			position_command,angle_command = self.position_command,self.angle_command
+			if not command_queue.empty():
+				command_queue.get()
+			
+			command_queue.put([self.position_command,self.angle_command])
 
 			if not delta_position_queue.empty() :
 				delta_position = delta_position_queue.get_nowait()
-				allsprites.update(env,delta_position)
-				env.update(screen)
-				allsprites.draw(screen)
+				self.allsprites.update(self.env,delta_position)
+				self.env.update(self.screen)
+				self.allsprites.draw(self.screen)
 				pygame.display.flip()
+
+			time.sleep(0.001)
 
 		pygame.quit()
 
