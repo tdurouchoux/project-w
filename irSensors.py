@@ -36,10 +36,12 @@ class IrSensors :
 	def get_distance_sensor(self,sensor='center'):
 
 		ir1 = self.ADS.ADS1256_GetChannalValue(self.sensors_channel[sensor])*5.0/0x7fffff
-		time.sleep(0.005)
+		time.sleep(0.001)
 		ir2 = self.ADS.ADS1256_GetChannalValue(self.sensors_channel[sensor])*5.0/0x7fffff
-		time.sleep(0.005)
+		time.sleep(0.001)
 		ir3 = self.ADS.ADS1256_GetChannalValue(self.sensors_channel[sensor])*5.0/0x7fffff
+
+
 
 		return self.voltage_to_distance(ir1,sensor=sensor),self.voltage_to_distance(ir2,sensor=sensor),self.voltage_to_distance(ir3,sensor=sensor)
 
