@@ -36,7 +36,10 @@ class Environment():
 		for i in range(40,self.background_size[1],40):
 			pygame.draw.line(self.background,(166, 166, 166),(0,i),(self.background_size[0],i),1)
 				
-	def add_obstacle(self,dx,dy):
+	def add_obstacle(self,distance,angle):
+
+		dx = distance * np.cos(angle)
+		dy = distance * np.sin(angle)
 
 		obstacle_position_x = dx +343 - self.background_rect.left
 		obstacle_position_y = dy + 343 - self.background_rect.top	
@@ -94,8 +97,10 @@ class Robot(pygame.sprite.Sprite):
 		dx = dx/2.5 # from mm to pixels 
 		dy = dy/2.5 # from mm to pixels 
 
-		
 		return dx,dy,theta 
+
+	def get_current_angle(self):
+		return self.current_angle
 
 	def update(self,env,delta_position): 
 
@@ -149,15 +154,22 @@ class PygameController :
 				elif event.key in (K_LEFT,K_RIGHT) : 
 					self.angle_command = 0 
 
-	def run(self,command_queue,delta_position_queue): 
+	def run(self,command_queue,delta_position_queue,detected_object_queue): 
 
 		while 1:
+
 			self.get_inputs()
 
 			if not command_queue.empty():
 				command_queue.get()
 			
 			command_queue.put([self.position_command,self.angle_command])
+
+
+			while not detected_object_queue.empty():
+				distance, angle = detect_object_queue.get()
+				current_angle = self.robot.get_current_angle()
+				env.add_obstacle(distance,current_angle+angle)
 
 			if not delta_position_queue.empty() :
 				delta_position = delta_position_queue.get_nowait()
