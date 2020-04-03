@@ -15,6 +15,9 @@ class IrSensors :
 		with open('sensors_regression_weights.json') as f : 
 			self.regression_weights = json.loads(f.read())
 
+		with open('samples_sensors.json') as f : 
+			self.dict_samples = json.loads(f.read())
+
 		self.ADS = ADS1256.ADS1256()
 		self.ADS.ADS1256_init()
 
@@ -34,6 +37,20 @@ class IrSensors :
 
 		return np.real(-(b+C+delta_0/C)/(3*a))
 
+	def voltage_to_distance_2(self,sensor='center'):
+		    samples = dict_samples[sensor]
+    
+	    if y>samples[0]:
+	        return 10
+	    elif y<samples[-1]:
+	        return 150
+	    
+	    i = 1
+	    while y<samples[i]:
+	        i+=1
+	    
+	    return -10*(y-samples[i])/(samples[i-1]-samples[i])+(i+1)*10
+
 
 	def get_distance_sensor(self,sensor='center'):
 
@@ -43,12 +60,15 @@ class IrSensors :
 		time.sleep(0.001)
 		ir3 = self.ADS.ADS1256_GetChannalValue(self.sensors_channel[sensor])*5.0/0x7fffff
 
-		distance = self.voltage_to_distance(np.mean([ir1,ir2,ir3]),sensor=sensor)
+		distance = self.voltage_to_distance_2(np.mean([ir1,ir2,ir3]),sensor=sensor)
+		
 		if distance> self.sensors_limits[sensor] : 
 			return -1
 		else : 
 			print(ir1,ir2,ir3)
 			return distance
+
+
 
 	def get_distance_all(self): 
 
