@@ -8,7 +8,7 @@ class IrSensors :
 
 	sensors = ['center','left','right']
 	sensors_channel = {'center':2,'left':3,'right':4}
-	sensors_limits = {'center':120,'left':120,'right':110}
+	sensors_limits = {'center':105,'left':105,'right':105}
 
 	def __init__(self): 
 		
@@ -37,19 +37,19 @@ class IrSensors :
 
 		return np.real(-(b+C+delta_0/C)/(3*a))
 
-	def voltage_to_distance_2(self,sensor='center'):
-		    samples = dict_samples[sensor]
-    
-	    if y>samples[0]:
-	        return 10
-	    elif y<samples[-1]:
-	        return 150
-	    
-	    i = 1
-	    while y<samples[i]:
-	        i+=1
-	    
-	    return -10*(y-samples[i])/(samples[i-1]-samples[i])+(i+1)*10
+	def voltage_to_distance_2(self,y,sensor='center'):
+		samples = self.dict_samples[sensor]
+
+		if y>samples[0]:
+			return 10
+		elif y<samples[-1]:
+			return 150
+
+		i = 1
+		while y<samples[i]:
+			i+=1
+
+		return -10*(y-samples[i])/(samples[i-1]-samples[i])+(i+1)*10
 
 
 	def get_distance_sensor(self,sensor='center'):
