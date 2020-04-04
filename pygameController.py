@@ -167,9 +167,9 @@ class PygameController :
 
 
 			while not detected_object_queue.empty():
-				distance, angle = detect_object_queue.get()
+				distance, angle = detected_object_queue.get()
 				current_angle = self.robot.get_current_angle()
-				env.add_obstacle(distance,current_angle+angle)
+				self.env.add_obstacle(distance,current_angle+angle)
 
 			if not delta_position_queue.empty() :
 				delta_position = delta_position_queue.get_nowait()
