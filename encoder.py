@@ -30,12 +30,14 @@ class Encoder:
 			self.left_enc+=1
 
 	def right_both_A(self,channel):
+		#print('coucou')
 		if (GPIO.input(right_B)!=GPIO.input(right_A)) :
 			self.right_enc-=1
 		else :
 			self.right_enc+=1
 
 	def right_both_B(self,channel):
+		#print('connasse')
 		if (GPIO.input(right_B)==GPIO.input(right_A)) :
 			self.right_enc-=1
 		else :
